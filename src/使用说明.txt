@@ -1,0 +1,2 @@
+﻿使用说明：
+	1. 在执行 StartServer.bat 之前，需要修改 conf 目录中的 nginx.conf 文件中的目录路径

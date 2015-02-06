@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head lang="zh-cn">
+    <meta charset="UTF-8">
+    {% include 'Views/components/_public_reference.html' %}
+    <style type="text/css">
+        .datagrid{margin-top:10px;}
+        #fm{margin:0; padding:10px 30px;}
+        .fitem{margin-bottom:5px;}
+        .fitem label{display:inline-block; width:80px;}
+        .fitem input{width:190px; padding-left: 1px;}
+        .fitem textarea{width:99.5%; height: 145px; line-height:18px; overflow: auto; padding-left: 3px;}
+        div.grippie {
+        	height:9px;
+			width: 100%;
+			border: 1px solid #ddd;
+			border-width:0pt 1px 1px;
+			background:#EEEEEE url(resources/images/grippie.png) no-repeat scroll center 2px;
+			cursor:s-resize;
+			overflow:hidden;
+		}
+		#div-detail{font-size:14px;}
+		#div-detail blockquote > p {border-left:3px solid #E0ECFF; padding:3px 0 3px 5px;}
+		#div-detail ul li{line-height:22px;}
+    </style>
+    <script type="text/javascript">
+        var _act, _id;
+        function newWorklog(act){
+            _act = act;
+            _id = "";
+            $('#dlg').dialog('open').dialog('setTitle','新增工作日志');
+            $('#fm').form('clear');
+            $('#progressMessage').text('');
+            var date = new Date();
+            $('#date').datebox('setValue', (date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()));
+
+            var data = $('#cbx_category').combobox('getData');
+            if (data.length > 0) {
+                $('#cbx_category').combobox('setValue', data[0].text);
+            }
+        }
+
+        function editWorklog(act) {
+            _act = act;
+            var row = $('#dg').datagrid('getSelected');
+            $('#progressMessage').text('');
+            if (row){
+                $('#dlg').dialog('open').dialog('setTitle','编辑工作日志');
+                $('#fm').form('load',row);
+                if(row.date === ""){
+                    var date = new Date();
+                    row.date =  (date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate());
+                }
+                $('#date').datebox('setValue', row.date);
+                _id = row._id;
+            }else{
+                alert('请选择要编辑的行。');
+            }
+        }
+
+        function removeWorklog(){
+            var row = $('#dg').datagrid('getSelected');
+            if (row){
+                alert(row.title)
+            }else{
+                alert('请选择要删除的行。');
+            }
+        }
+
+        function viewWorklog(act){
+            var row = $('#dg').datagrid('getSelected');
+
+            if(row === null) return;
+
+            var converter = new Attacklab.showdown.converter();
+            var html = converter.makeHtml(row.content);
+            console.log(html);
+            $('#dlg-detail').dialog('open').dialog('setTitle', '查看工作日志');
+            $('#div-detail').html(html);
+        }
+
+        function saveWorkLog(){
+            if(!$('#fm').form('validate')) return;
+
+            var worklogObj = {
+                act: _act,
+                id: _id,
+                title: $('#title').val(),
+                category: $('#cbx_category').combobox('getValue'),
+                content: $('#content').val(),
+                date: $('#date').datebox('getValue')
+            };
+            $.ajax({
+                url: 'api/worklog/',
+                dataType: 'text',
+                type: 'POST',
+                data: worklogObj,
+                beforeSend: function(){
+                    $('#progressMessage').text("正在保存...");
+                },
+                success: function (data) {
+                    if(data === "1"){
+                        $('#progressMessage').text("保存成功.");
+                        $('#fm').form('clear');
+                        window.setTimeout(function () {
+                            $('#dlg').dialog('close');
+
+                            loadGridData(globalPageIndex, globalPageSize);
+                        },0);
+                    }else{
+                        $('#progressMessage').text("保存失败.");
+                    }
+                }
+            });
+        }
+
+        function dateFormatter(date){
+            var y = date.getFullYear();
+            var m = date.getMonth()+1;
+            var d = date.getDate();
+            return y+'-'+(m<10?('0'+m):m)+'-'+(d<10?('0'+d):d);
+        }
+
+        function dateParser(s){
+            if (!s) return new Date();
+            var ss = (s.split('-'));
+            var y = parseInt(ss[0],10);
+            var m = parseInt(ss[1],10);
+            var d = parseInt(ss[2],10);
+            if (!isNaN(y) && !isNaN(m) && !isNaN(d)){
+                return new Date(y,m-1,d);
+            } else {
+                return new Date();
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="main-body">
+        <div id="dg"></div>
+
+        <div id="toolbar">
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-detail" plain="true" onclick="viewWorklog('view');">查看</a>
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newWorklog('add');">添加</a>
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editWorklog('modify');">修改</a>
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="removeWorklog();">删除</a>
+            <input id="searchBox" style="width:220px;" />
+        </div>
+
+        <div id="dlg-detail" class="easyui-dialog" style="width:600px;height:420px;padding:10px 20px"
+                closed="true">
+            <div id="div-detail" style="font-family:'monospace';"></div>
+        </div>
+
+        <div id="dlg" class="easyui-dialog" style="width:600px;height:420px;padding:10px 20px"
+                closed="true" maximizable="true" minimizable="true" collapsible="true" buttons="#dlg-buttons">
+            <form id="fm" method="post" novalidate>
+                <div class="fitem">
+                    <label>标题:</label>
+                    <input id="title" name="title" class="easyui-validatebox" required="true">
+                </div>
+                <div class="fitem">
+                    <label>分类:</label>
+                    <input id="cbx_category" name="category" />
+                </div>
+                <div class="fitem">
+                    <label style="vertical-align: top;">内容:</label>
+                    <textarea id="content" name="content" class="easyui-validatebox" required="true"></textarea>
+                </div>
+                <div class="fitem">
+                    <label>日期:</label>
+                    <input id="date" name="date" class="easyui-datebox" editable="false" required="true" data-options="formatter:dateFormatter, parser:dateParser" />
+                </div>
+            </form>
+        </div>
+        <div id="dlg-buttons">
+            <span id="progressMessage" style="color: darkred;"></span>
+            <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" onclick="saveWorkLog()">保存</a>
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close');">取消</a>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var globalPageSize = 10, globalPageIndex = 1;
+
+        $(document).ready(function () {
+            var keyword = '';
+
+            //初始化 datagrid
+            $('#dg').datagrid({
+                //url: '/api/worklog/',
+                method: 'post',
+                queryParams: {
+                    page: globalPageIndex,
+                    rows: globalPageSize
+                },
+                title: 'My work log.',
+                toolbar: '#toolbar',
+                fitColumns: true,
+                singleSelect: true,
+                rownumbers: true,
+                pagination: true,
+                pageSize: 10,
+                columns: [[
+                    {field: 'title', title: '标题', width: 80},
+                    {field: 'category', title: '分类', width:60},
+                    {field: 'content', title: '工作内容', width:355},
+                    {field: 'date', title: '日期', width:80}
+                ]]
+            });
+
+            //初始化分页组件 ,此处会覆盖 datagrid 中对 pagination 的设置
+            var pagination = $('#dg').datagrid('getPager');
+            $(pagination).pagination({
+                pageSize: 10,
+                //beforePageText: '第',
+                //afterPageText: '页&nbsp;&nbsp;&nbsp;&nbsp;共 {pages} 页',
+                pageList: [10, 20, 30, 50],
+                onSelectPage: function(pageIndex, pageSize){
+                    globalPageIndex = pageIndex;
+                    globalPageSize = pageSize;
+                    $.post('/api/worklog/', {page: pageIndex, rows: pageSize, keyword: keyword}, function (data) {
+                        $('#dg').datagrid('loadData', data);
+                    });
+                }
+            });
+
+            //加载第 1 页数据
+            loadGridData(globalPageIndex, globalPageSize);
+
+            function loadGridData(pageIndex, pageSize) {
+                $.post('/api/worklog/', {page: pageIndex, rows: pageSize, keyword: keyword}, function (data) {
+                    $('#dg').datagrid('loadData', data);
+                });
+            }
+            window.loadGridData = loadGridData;
+
+            //初始化分类下拉框
+            $('#cbx_category').combobox({
+                url: '/api/worklog/category/',
+                valueField: 'text',
+                textField: 'text',
+                required: true,
+                value:'defaultValue',
+                editable:false
+            });
+
+            //初始化搜索框
+            $('#searchBox').searchbox({
+                prompt: "请输入查询关键字",
+                searcher:function(value, name){
+                    keyword = value;
+                    $.post('/api/worklog/', {page: 1, rows: globalPageSize, keyword: keyword}, function (data) {
+                        $('#dg').datagrid('loadData', data);
+                    })
+                }
+            });
+
+            $('#content').wmd({
+                'preview': true,
+		        "helpLink": "https://github.com/Oger-Me/wmd/",
+		        "helpHoverTitle": "Markdown Help"
+            });
+            $('#content:not(.processed)').TextAreaResizer();
+        })
+    </script>
+</body>
+</html>

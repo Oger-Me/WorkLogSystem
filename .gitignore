@@ -52,3 +52,16 @@ docs/_build/
 
 # PyBuilder
 target/
+src/WorkLogSystem/db.sqlite3
+src/WorkLogSystem/.idea/.name
+src/WorkLogSystem/.idea/dataSources.ids
+src/WorkLogSystem/.idea/dataSources.xml
+src/WorkLogSystem/.idea/dictionaries/Administrator.xml
+src/WorkLogSystem/.idea/encodings.xml
+src/WorkLogSystem/.idea/misc.xml
+src/WorkLogSystem/.idea/misc.xml
+src/WorkLogSystem/.idea/modules.xml
+src/WorkLogSystem/.idea/scopes/scope_settings.xml
+src/WorkLogSystem/.idea/vcs.xml
+src/WorkLogSystem/.idea/WorkLogSystem.iml
+src/WorkLogSystem/.idea/workspace.xml
