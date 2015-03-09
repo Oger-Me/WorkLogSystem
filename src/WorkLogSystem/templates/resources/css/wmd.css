@@ -1,4 +1,4 @@
-textarea,input{outline:none;}
+﻿textarea,input{outline:none;}
 textarea{resize: none;}
 
 .wmd-panel
@@ -38,7 +38,7 @@ textarea{resize: none;}
 	_height:10px;
 	width:100%;
 	margin-top:10px;
-	font-family:"monospace";
+	font-family:'consolas','微软雅黑';
 	line-height:20px;
 }
 

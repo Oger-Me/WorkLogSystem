@@ -65,3 +65,4 @@ src/WorkLogSystem/.idea/scopes/scope_settings.xml
 src/WorkLogSystem/.idea/vcs.xml
 src/WorkLogSystem/.idea/WorkLogSystem.iml
 src/WorkLogSystem/.idea/workspace.xml
+src/logs/nginx.pid
