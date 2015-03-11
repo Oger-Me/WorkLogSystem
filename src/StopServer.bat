@@ -1,10 +1,10 @@
-@echo off
+锘緻echo off
 
 set current_path="%~dp0"
 cd /D %current_path%
 
 nginx -s quit
 nginx -s quit
-echo 停止 nginx 进程成功
+echo 鍋滄 nginx 杩涚▼鎴愬姛
 
 rem pause
