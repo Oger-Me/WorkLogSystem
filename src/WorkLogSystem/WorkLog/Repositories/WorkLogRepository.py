@@ -1,16 +1,19 @@
 # -*- coding:utf-8 -*-
 from bson import Regex
+from pymongo import MongoClient
+from pymongo.database import Database
 
 __author__ = 'JRoger'
 
-from pymongo import Connection, MongoClient
+
 from bson.objectid import ObjectId
 
 
 class WorkLogRepository(object):
     def __init__(self):
-        self.conn = MongoClient(host='127.0.0.1', port=27017, max_pool_size=100)
-        self.db = self.conn.WorkLogDB
+        self.conn = MongoClient(host='127.0.0.1', port=27017)
+        #self.db = self.conn.WorkLogDB
+        self.db = Database(self.conn, "WorkLogDB")
 
     def add(self, item):
         self.db.worklog.insert(item)
@@ -45,4 +48,4 @@ class WorkLogRepository(object):
             return -1
 
     def disconnection(self):
-        self.conn.disconnect()
+        self.conn.close()
